@@ -141,24 +141,22 @@ class BattersControlFrame(customtkinter.CTkFrame):
         # match_details["batting_team"]["batsmen"]
         count = len(match_details["batting_team"]["batsmen"]) + 1
 
-        self.add_batsman_batters_control_frame = customtkinter.CTkButton(master=self, text="Add Batsman",
+        # add batsman button
+        self.add_batsman_batters_control_frame = customtkinter.CTkButton(master=self, text="+",
                                                                          font=customtkinter.CTkFont(size=15), width=100,
                                                                          command=lambda: self.add_new_batsman(count,
-                                                                                                              {
-                                                                                                                  "name": "",
-                                                                                                                  "runs": 0,
-                                                                                                                  "balls": 0,
-                                                                                                                  "is_out": False,
-                                                                                                                "is_striker": False,
-                                                                                                              "is_playing": False}))
+                                                                                                              gl.empty_batsman))
         self.add_batsman_batters_control_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         for index, batsman in enumerate(match_details["batting_team"]["batsmen"]):
             self.add_new_batsman(index, batsman)
 
-    def add_new_batsman(self, count, batsman):
+    def add_new_batsman(self, count, batsman):  # adds a new batsman frame
         self.single_batter_frame = SingleBatterFrame(master=self, batsman=batsman)
         self.single_batter_frame.grid(row=count, column=0, padx=20, pady=4, sticky="nsew")
-
+        if not batsman["name"] == "":
+            self.single_batter_frame.single_batsman_update_btn.grid_remove()
+            self.single_batter_frame.single_batsman_play_out_btn.configure(
+                command=lambda: self.single_batter_frame.update_play_out(batsman,match_details))
         self.add_batsman_batters_control_frame.grid(row=count + 1, column=0, sticky="nsew", padx=10, pady=10)
 
 
@@ -199,16 +197,15 @@ class SingleBatterFrame(customtkinter.CTkFrame):
         #                                                          font=customtkinter.CTkFont(size=15), width=100)
         # self.single_batsman_is_out_btn.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
 
-        self.single_batsman_update_btn = customtkinter.CTkButton(master=self, text="Update",
+        self.single_batsman_update_btn = customtkinter.CTkButton(master=self, text="Add To List",
                                                                  font=customtkinter.CTkFont(size=15), width=100,
                                                                  command=lambda: self.update_batsman_details(
                                                                      match_details))
         self.single_batsman_update_btn.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
 
         self.single_batsman_play_out_btn = customtkinter.CTkButton(master=self, text="Play",
-                                                                 font=customtkinter.CTkFont(size=15), width=100)
+                                                                   font=customtkinter.CTkFont(size=15), width=100)
         self.single_batsman_play_out_btn.grid(row=0, column=3, sticky="nsew", padx=10, pady=10)
-
 
     def update_batsman_details(self, match_details):
         batsman = {
@@ -225,6 +222,18 @@ class SingleBatterFrame(customtkinter.CTkFrame):
         match_details = gl.add_new_batsman(batsman, match_details)
         gl.write_match_details(match_details)
         UpdateUI()
+        self.single_batsman_update_btn.grid_remove()
+
+    def update_play_out(self, batsman, match_details):
+        if not batsman["is_playing"] and not batsman["is_out"]:
+            batsman["is_playing"] = True
+        else:
+            batsman["is_playing"] = False
+            batsman["is_out"] = True
+        match_details = gl.add_new_batsman(batsman, match_details)
+        gl.write_match_details(match_details)
+        UpdateUI()
+
 
 
 class SingleBowlerFrame(customtkinter.CTkFrame):
@@ -285,11 +294,12 @@ class UpdateUI(customtkinter.CTk):
         app.stats_show_frame.main_overs_entry.insert(0, f'{match_details["batting_team"]["stats"]["overs"]}')
 
         striker = gl.get_striker(match_details)
-        app.stats_show_frame.striker_lbl.configure(text=f'*{striker["name"]} - {striker["runs"]}({striker["balls"]})' if striker else '')
+        app.stats_show_frame.striker_lbl.configure(
+            text=f'*{striker["name"]} - {striker["runs"]}({striker["balls"]})' if striker else '')
 
         non_striker = gl.get_non_striker(match_details)
         app.stats_show_frame.non_striker_lbl.configure(
-            text=f'{non_striker["name"]} - {non_striker["runs"]}({non_striker["balls"]})'if non_striker else '')
+            text=f'{non_striker["name"]} - {non_striker["runs"]}({non_striker["balls"]})' if non_striker else '')
 
         current_bowler = gl.get_current_bowler(match_details)
         app.stats_show_frame.bowler_lbl.configure(
