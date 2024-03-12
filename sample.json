@@ -5,7 +5,15 @@
         "image": "",
         "batsmen": [
             {
-                "name": "ashan",
+                "name": "gggg",
+                "runs": 0,
+                "balls": 0,
+                "is_striker": false,
+                "is_playing": true,
+                "is_out": false
+            },
+            {
+                "name": "nishan",
                 "runs": 0,
                 "balls": 0,
                 "is_striker": false,
